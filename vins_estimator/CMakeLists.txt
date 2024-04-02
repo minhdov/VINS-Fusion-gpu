@@ -16,8 +16,10 @@ find_package(catkin REQUIRED COMPONENTS
     camera_models
     image_transport)
 
-#find_package(OpenCV REQUIRED)
-include(/home/dji/opencv/build/OpenCVConfig.cmake)
+find_package(OpenCV REQUIRED)
+#include(/home/dji/opencv/build/OpenCVConfig.cmake)
+include(/media/jetson/SAMSUNG/ntu/software/opencv-3.4.2/opencv/build/OpenCVConfig.cmake)
+
 #message(WARNING "OpenCV_VERSION: ${OpenCV_VERSION}")
 
 find_package(Ceres REQUIRED)

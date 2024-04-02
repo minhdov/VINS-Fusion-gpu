@@ -51,6 +51,14 @@ void Estimator::setParameter()
 
 void Estimator::inputImage(double t, const cv::Mat &_img, const cv::Mat &_img1)
 {
+
+    static ros::Time last_time = ros::Time::now();
+    ros::Time current_time = ros::Time::now();
+    double dt = (current_time - last_time).toSec();
+    last_time = current_time;
+    ROS_INFO("***Input:  Image input rate: %f Hz", 1.0/dt);
+            
+
 //     if(begin_time_count<=0)
     inputImageCnt++;
     map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> featureFrame;
@@ -211,6 +219,12 @@ void Estimator::processMeasurements()
             header.frame_id = "world";
             header.stamp = ros::Time(feature.first);
 
+            static ros::Time last_time = ros::Time::now();
+            ros::Time current_time = ros::Time::now();
+            double dt = (current_time - last_time).toSec();
+            last_time = current_time;
+            ROS_INFO("***Output:  Odometry publish rate: %f Hz", 1.0/dt);
+            
             pubOdometry(*this, header);
             pubKeyPoses(*this, header);
             pubCameraPose(*this, header);

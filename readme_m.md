@@ -1,5 +1,6 @@
 # Reference: 
 https://github.com/pjrambo/VINS-Fusion-gpu
+https://github.com/IOdissey/VINS-Fusion-GPU
 
 # RUN VIN-FUSION
 ### 3.1 Monocualr camera + IMU
@@ -27,7 +28,20 @@ https://github.com/pjrambo/VINS-Fusion-gpu
 
     rosbag play YOUR_DATASET_FOLDER/MH_01_easy.bag
 ```
-~/catkin_ws_gpu/src/VINS-Fusion-gpu/config/euroc/euroc_stereo_imu_config.yaml
+### 3.2.2 Stereo cameras + IMU - Tiny
+
+```
+    source ~/catkin_ws_gpu/devel/setup.bash
+
+    roslaunch vins vins_rviz.launch
+
+    rosrun vins vins_node ~/catkin_ws_gpu/src/VINS-Fusion-gpu/config/euroc/euroc_stereo_imu_config_tiny.yaml
+
+    rosrun loop_fusion loop_fusion_node ~/catkin_ws_gpu/src/VINS-Fusion-gpu/config/euroc/euroc_stereo_imu_config_tiny.yaml
+
+    rosbag play YOUR_DATASET_FOLDER/MH_01_easy.bag
+```
+
 ### 3.3 Stereo cameras
 
 ```

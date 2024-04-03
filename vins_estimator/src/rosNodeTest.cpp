@@ -70,6 +70,13 @@ cv::Mat getImageFromMsg(const sensor_msgs::ImageConstPtr &img_msg)
 // extract images with same timestamp from two topics
 void sync_process()
 {
+    std::ofstream outFile("output/estimator_time.txt"); // Create an output file stream object and open "number.txt"
+    if (!outFile) { // Check if the file was successfully opened
+        std::cerr << "Failed to open file for writing." << std::endl;
+    }
+    outFile.close(); // Close the file stream
+
+
     while(1)
     {
         if(STEREO)
@@ -107,7 +114,16 @@ void sync_process()
             }
             m_buf.unlock();
             if(!image0.empty())
+            {
+                TicToc estimator_t;
+
                 estimator.inputImage(time, image0, image1);
+
+                float estimator_time = estimator_t.toc();
+                std::ofstream outFile("output/estimator_time.txt", std::ios::app); // Correct way to open a file in append mode
+                outFile <<1.0/estimator_time*1000 <<std::endl;
+                outFile.close(); // Close the file stream
+            }
         }
         else
         {

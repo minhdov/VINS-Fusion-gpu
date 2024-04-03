@@ -27,6 +27,13 @@ PoseGraph::PoseGraph()
     sequence_loop.push_back(0);
     base_sequence = 1;
     use_imu = 0;
+
+    std::ofstream outFile("output/pose_graph_optimization_rate.txt"); // Create an output file stream object and open "number.txt"
+    if (!outFile) { // Check if the file was successfully opened
+        std::cerr << "Failed to open file for writing." << std::endl;
+    }
+    outFile.close(); // Close the file stream
+
 }
 
 PoseGraph::~PoseGraph()
@@ -551,6 +558,15 @@ void PoseGraph::optimize4DoF()
             m_keyframelist.unlock();
 
             ceres::Solve(options, &problem, &summary);
+
+            float pose_graph_optimization_t = tmp_t.toc();
+
+            std::ofstream outFile("output/pose_graph_optimization_rate.txt", std::ios::app); // Correct way to open a file in append mode
+            outFile <<1/pose_graph_optimization_t*1000 <<std::endl;
+            outFile.close(); // Close the file stream
+
+
+
             //std::cout << summary.BriefReport() << "\n";
             
             //printf("pose optimization time: %f \n", tmp_t.toc());

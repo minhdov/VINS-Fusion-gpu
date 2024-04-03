@@ -362,12 +362,22 @@ void process()
 
                 KeyFrame* keyframe = new KeyFrame(pose_msg->header.stamp.toSec(), frame_index, T, R, image,
                                    point_3d, point_2d_uv, point_2d_normal, point_id, sequence);   
+
+              
+                TicToc loop_closure_t; //Minh added
                 m_process.lock();
                 start_flag = 1;
+
                 posegraph.addKeyFrame(keyframe, 1);
                 m_process.unlock();
                 frame_index++;
                 last_t = T;
+
+                float loop_closure_time = loop_closure_t.toc();
+                std::ofstream outFile("output/loop_closure_rate.txt", std::ios::app); // Correct way to open a file in append mode
+                outFile <<1.0/loop_closure_time*1000 <<std::endl;
+
+                outFile.close(); // Close the file stream                
             }
         }
         std::chrono::milliseconds dura(5);
@@ -416,6 +426,13 @@ int main(int argc, char **argv)
         return 0;
     }
     
+    std::ofstream outFile("output/loop_closure_rate.txt"); // Create an output file stream object and open "number.txt"
+    if (!outFile) { // Check if the file was successfully opened
+        std::cerr << "Failed to open file for writing." << std::endl;
+    }
+    outFile.close(); // Close the file stream
+
+
     string config_file = argv[1];
     printf("config_file: %s\n", argv[1]);
 

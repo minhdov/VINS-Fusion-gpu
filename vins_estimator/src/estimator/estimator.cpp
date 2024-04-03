@@ -23,6 +23,11 @@ Estimator::Estimator(): f_manager{Rs}
     // sum_t_feature = 0.0;
     // begin_time_count = 10;
     initFirstPoseFlag = false;
+    
+    std::ofstream outFile("output/input_data_rate.txt"); // Correct way to open a file in append mode
+    outFile.close(); // Close the file stream
+
+
 }
 
 void Estimator::setParameter()
@@ -57,7 +62,9 @@ void Estimator::inputImage(double t, const cv::Mat &_img, const cv::Mat &_img1)
     double dt = (current_time - last_time).toSec();
     last_time = current_time;
     ROS_INFO("***Input:  Image input rate: %f Hz", 1.0/dt);
-            
+    std::ofstream outFile("output/input_data_rate.txt", std::ios::app); // Correct way to open a file in append mode
+    outFile <<1.0/dt <<std::endl;
+    outFile.close(); // Close the file stream            
 
 //     if(begin_time_count<=0)
     inputImageCnt++;
@@ -163,6 +170,9 @@ bool Estimator::IMUAvailable(double t)
 
 void Estimator::processMeasurements()
 {
+    std::ofstream outFile("output/output_od_rate.txt"); // Correct way to open a file in append mode
+    outFile.close(); // Close the file stream
+
     while (1)
     {
         //printf("process measurments\n");
@@ -225,6 +235,10 @@ void Estimator::processMeasurements()
             last_time = current_time;
             ROS_INFO("***Output:  Odometry publish rate: %f Hz", 1.0/dt);
             
+            std::ofstream outFile("output/output_od_rate.txt", std::ios::app); // Correct way to open a file in append mode
+            outFile <<1.0/dt <<std::endl;
+            outFile.close(); // Close the file stream
+
             pubOdometry(*this, header);
             pubKeyPoses(*this, header);
             pubCameraPose(*this, header);

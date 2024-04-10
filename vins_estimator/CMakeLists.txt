@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vins)
+#project(vins)
+
+project(vins LANGUAGES CXX CUDA)    # added for cuda_bundle_adjustment
+
 
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++11")
+set(CMAKE_CXX_FLAGS "-std=c++14")
 #-DEIGEN_USE_MKL_ALL")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
@@ -41,6 +44,16 @@ message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 message(STATUS "    catkin libraries: ${catkin_LIBRARIES}")
 #catkin_package()
 
+######## added for cuda_bundle_adjustment ########
+find_package(CUDA REQUIRED)
+message(STATUS "CUDA_LIBRARIES : ${CUDA_LIBRARIES}")
+message(STATUS "CUDA_cublas_LIBRARY : ${CUDA_cublas_LIBRARY}")
+message(STATUS "CUDA_cusolver_LIBRARY : ${CUDA_cusolver_LIBRARY}")
+message(STATUS "CUDA_INCLUDE_DIRS : ${CUDA_INCLUDE_DIRS}")
+include_directories(${CUDA_INCLUDE_DIRS})
+add_subdirectory(src/cuda_bundle_adjustment)
+######## added for cuda_bundle_adjustment ########
+
 add_library(vins_lib
     src/estimator/parameters.cpp
     src/estimator/estimator.cpp
@@ -60,6 +73,9 @@ add_library(vins_lib
     src/featureTracker/feature_tracker.cpp)
 target_link_libraries(vins_lib ${OpenCV_LIBS} ${catkin_LIBRARIES}  ${CERES_LIBRARIES})
 
+######## added for cuda_bundle_adjustment ########
+target_link_libraries(vins_lib CUDAVinsFusionBundleAdjustment)
+######## added for cuda_bundle_adjustment ########
 
 add_executable(vins_node src/rosNodeTest.cpp)
 target_link_libraries(vins_node vins_lib) 

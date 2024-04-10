@@ -376,8 +376,8 @@ void process()
                 float loop_closure_time = loop_closure_t.toc();
                 std::ofstream outFile("output/loop_closure_rate.txt", std::ios::app); // Correct way to open a file in append mode
                 outFile <<1.0/loop_closure_time*1000 <<std::endl;
-
-                outFile.close(); // Close the file stream                
+                outFile.close(); // Close the file stream       
+                         
             }
         }
         std::chrono::milliseconds dura(5);

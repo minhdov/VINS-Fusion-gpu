@@ -27,6 +27,8 @@
 #include "../estimator/estimator.h"
 #include "../estimator/parameters.h"
 #include <fstream>
+#include <cv_bridge/cv_bridge.h>
+
 
 extern ros::Publisher pub_odometry;
 extern ros::Publisher pub_path, pub_pose;
@@ -41,6 +43,8 @@ extern int IMAGE_ROW, IMAGE_COL;
 void registerPub(ros::NodeHandle &n);
 
 void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, const Eigen::Vector3d &V, double t);
+
+void pubTrackImage(const cv::Mat &imgTrack, const double t);
 
 void printStatistics(const Estimator &estimator, double t);
 
@@ -61,3 +65,14 @@ void pubKeyframe(const Estimator &estimator);
 void pubRelocalization(const Estimator &estimator);
 
 void pubCar(const Estimator & estimator, const std_msgs::Header &header);
+
+// ------------------------------------------------------------------------------------------------------------------------
+
+void pubLatestOdometryKITTI(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, const Eigen::Vector3d &V, double t);
+void pubOdometryKITTI(const Estimator &estimator, const std_msgs::Header &header);
+void pubKeyPosesKITTI(const Estimator &estimator, const std_msgs::Header &header);
+void pubCameraPoseKITTI(const Estimator &estimator, const std_msgs::Header &header);
+void pubPointCloudKITTI(const Estimator &estimator, const std_msgs::Header &header);
+void pubKeyframeKITTI(const Estimator &estimator);
+void pubTFKITTI(const Estimator &estimator, const std_msgs::Header &header);
+

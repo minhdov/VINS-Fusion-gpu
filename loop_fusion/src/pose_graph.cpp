@@ -560,7 +560,6 @@ void PoseGraph::optimize4DoF()
             ceres::Solve(options, &problem, &summary);
 
             float pose_graph_optimization_t = tmp_t.toc();
-
             std::ofstream outFile("output/pose_graph_optimization_rate.txt", std::ios::app); // Correct way to open a file in append mode
             outFile <<1/pose_graph_optimization_t*1000 <<std::endl;
             outFile.close(); // Close the file stream

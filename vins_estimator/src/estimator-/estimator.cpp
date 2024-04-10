@@ -15,9 +15,6 @@ Estimator::Estimator() : f_manager{Rs}, cuda_bundle_adjustment(WINDOW_SIZE + 1, 
     ROS_INFO("init begins");
     initThreadFlag = false;
     clearState();
-    std::ofstream outFile("output/input_data_rate.txt"); // Correct way to open a file in append mode
-    outFile.close(); // Close the file stream
-
 }
 
 Estimator::~Estimator()
@@ -162,16 +159,6 @@ void Estimator::changeSensorType(int use_imu, int use_stereo)
 
 void Estimator::inputImage(double t, const cv::Mat &_img, const cv::Mat &_img1)
 {
-
-    static ros::Time last_time = ros::Time::now();
-    ros::Time current_time = ros::Time::now();
-    double dt = (current_time - last_time).toSec();
-    last_time = current_time;
-    ROS_INFO("***Input:  Image input rate: %f Hz", 1.0/dt);
-    std::ofstream outFile("output/input_data_rate.txt", std::ios::app); // Correct way to open a file in append mode
-    outFile <<1.0/dt <<std::endl;
-    outFile.close(); // Close the file stream     
-
     inputImageCnt++;
     map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> featureFrame;
     TicToc featureTrackerTime;
@@ -286,8 +273,6 @@ bool Estimator::IMUAvailable(double t)
 
 void Estimator::processMeasurements()
 {
-    std::ofstream outFile("output/output_od_rate.txt"); // Correct way to open a file in append mode
-    outFile.close(); // Close the file stream
     while (1)
     {
         //printf("process measurments\n");
@@ -342,16 +327,6 @@ void Estimator::processMeasurements()
             std_msgs::Header header;
             header.frame_id = "world";
             header.stamp = ros::Time(feature.first);
-
-            static ros::Time last_time = ros::Time::now();
-            ros::Time current_time = ros::Time::now();
-            double dt = (current_time - last_time).toSec();
-            last_time = current_time;
-            ROS_INFO("***Output:  Odometry publish rate: %f Hz", 1.0/dt);
-            
-            std::ofstream outFile("output/output_od_rate.txt", std::ios::app); // Correct way to open a file in append mode
-            outFile <<1.0/dt <<std::endl;
-            outFile.close(); // Close the file stream
 
             if(KITTI) {
                 pubOdometryKITTI(*this, header);

@@ -51,21 +51,6 @@ double F_THRESHOLD;
 int SHOW_TRACK;
 int FLOW_BACK;
 
-//
-
-bool KITTI;
-
-Eigen::Matrix4d    gps_T_cam0;
-
-Eigen::Matrix3d    gps_T_cam0_R;
-
-Eigen::Vector3d    gps_T_cam0_T;
-
-Eigen::Quaterniond gps_T_cam0_Q;
-
-//
-
-
 
 template <typename T>
 T readParam(ros::NodeHandle &n, std::string name)
@@ -230,36 +215,6 @@ void readParameters(std::string config_file)
         cv::cv2eigen(rectify_right, rectify_R_right);
 
     }
-
-        // transform from cam0 to gps
-    if(!fsSettings["KITTI"].empty() && int(fsSettings["KITTI"]) == 1) 
-    {
-        KITTI = true;
-
-        cv::Mat cv_cam0_T_lidar;
-        fsSettings["cam0_T_lidar"] >> cv_cam0_T_lidar;
-        Eigen::Matrix4d cam0_T_lidar;
-        cv::cv2eigen(cv_cam0_T_lidar, cam0_T_lidar);
-
-        cv::Mat cv_lidar_T_gps;
-        fsSettings["lidar_T_gps"] >> cv_lidar_T_gps;
-        Eigen::Matrix4d lidar_T_gps;
-        cv::cv2eigen(cv_lidar_T_gps, lidar_T_gps);
-
-        Eigen::Matrix4d cam0_T_gps = cam0_T_lidar * lidar_T_gps;
-        gps_T_cam0.block<3, 3>(0, 0) = cam0_T_gps.block<3, 3>(0, 0).transpose();
-        gps_T_cam0.block<3, 1>(0, 3) = -1.0 * cam0_T_gps.block<3, 3>(0, 0).transpose() * cam0_T_gps.block<3, 1>(0, 3);
-        gps_T_cam0(3, 0) = 0.0; gps_T_cam0(3, 1) = 0.0; gps_T_cam0(3, 2) = 0.0; gps_T_cam0(3, 3) = 1.0;
-
-        gps_T_cam0_R = gps_T_cam0.block<3, 3>(0, 0);
-        gps_T_cam0_T = gps_T_cam0.block<3, 1>(0, 3);
-        gps_T_cam0_Q = Eigen::Quaterniond(gps_T_cam0_R);
-    } 
-    else 
-    {
-        KITTI = false;
-    }
-    
 
     fsSettings.release();
 }

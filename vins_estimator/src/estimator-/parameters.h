@@ -69,14 +69,6 @@ extern double F_THRESHOLD;
 extern int SHOW_TRACK;
 extern int FLOW_BACK;
 
-//
-extern bool KITTI;
-extern Eigen::Matrix4d    gps_T_cam0;
-extern Eigen::Matrix3d    gps_T_cam0_R;
-extern Eigen::Vector3d    gps_T_cam0_T;
-extern Eigen::Quaterniond gps_T_cam0_Q;
-//
-
 void readParameters(std::string config_file);
 
 enum SIZE_PARAMETERIZATION

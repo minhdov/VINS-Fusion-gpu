@@ -41,7 +41,19 @@ https://github.com/IOdissey/VINS-Fusion-GPU
 
     rosbag play YOUR_DATASET_FOLDER/MH_01_easy.bag
 ```
+### 3.2.3 Stereo cameras + IMU - Tiny50
 
+```
+    source ~/catkin_ws_gpu/devel/setup.bash
+
+    roslaunch vins vins_rviz.launch
+
+    rosrun vins vins_node ~/catkin_ws_gpu/src/VINS-Fusion-gpu/config/euroc/euroc_stereo_imu_config_tiny50.yaml
+
+    rosrun loop_fusion loop_fusion_node ~/catkin_ws_gpu/src/VINS-Fusion-gpu/config/euroc/euroc_stereo_imu_config_tiny50.yaml
+
+    rosbag play YOUR_DATASET_FOLDER/MH_01_easy.bag
+```
 ### 3.3 Stereo cameras
 
 ```
@@ -65,3 +77,10 @@ rosrun vins vins_node ~/catkin_ws_gpu/src/VINS-Fusion-gpu/config/realsense_d435i
 rosrun loop_fusion loop_fusion_node ~/catkin_ws_gpu/src/VINS-Fusion-gpu/config/realsense_d435i/realsense_stereo_imu_config.yaml 
 
 source ~/catkin_ws/devel/setup.bash
+****************************************************************************************************
+# Date: 20240409 
+# References
+https://github.com/qdLMF/VINS-Fusion-GPU-BA
+
+# Purpose
+- Integrate VINS-FUSION BA GPU to VINS-Fusion GPU

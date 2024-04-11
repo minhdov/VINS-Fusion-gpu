@@ -18,6 +18,8 @@ Estimator::Estimator() : f_manager{Rs}, cuda_bundle_adjustment(WINDOW_SIZE + 1, 
     std::ofstream outFile("output/input_data_rate.txt"); // Correct way to open a file in append mode
     outFile.close(); // Close the file stream
 
+    std::ofstream outFile2("output/BA_rate.txt"); // Correct way to open a file in append mode
+    outFile2.close(); // Close the file stream
 }
 
 Estimator::~Estimator()
@@ -1317,7 +1319,8 @@ void Estimator::optimization_with_cuda()
     auto dur = std::chrono::system_clock::now() - now;
     total_dur_solve_and_marg += dur;
     float cur_dur_solve_and_marg = std::chrono::duration_cast<std::chrono::microseconds>(dur).count() / 1000.0;
-    std::cout << "duration ms : solve and marg with cuda : { " << cur_dur_solve_and_marg << " }" << std::endl;
+    // std::cout << "duration ms : solve and marg with cuda : { " << cur_dur_solve_and_marg << " }" << std::endl;
+
 
     // ----------------------------------------------------------------------------------------------------
 
@@ -1383,6 +1386,10 @@ void Estimator::optimization_with_cuda()
 
     float avg_dur_solve_and_marg = std::chrono::duration_cast<std::chrono::microseconds>(total_dur_solve_and_marg).count() / 1000.0 / optimization_count;
     std::cout << "average duration ms : solve and marg with cuda : { " << avg_dur_solve_and_marg << " }" << std::endl;
+
+    std::ofstream outFile2("output/BA_rate.txt", std::ios::app); // Correct way to open a file in append mode
+    outFile2 <<1.0/avg_dur_solve_and_marg <<std::endl;
+    outFile2.close(); // Close the file stream     
 
     std::cout << "--------------------------------------------------------------------------------" <<std::endl;
 }

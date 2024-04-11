@@ -2,6 +2,9 @@
 https://github.com/pjrambo/VINS-Fusion-gpu
 https://github.com/IOdissey/VINS-Fusion-GPU
 
+# Docs
+https://github.com/minhdov/VINS-Fusion-gpu
+
 # RUN VIN-FUSION
 ### 3.1 Monocualr camera + IMU
 

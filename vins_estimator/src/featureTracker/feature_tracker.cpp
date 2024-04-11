@@ -163,7 +163,7 @@ map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> FeatureTracker::trackIm
                         status[i] = 0;
                 }
             }
-            // printf("temporal optical flow costs: %fms\n", t_o.toc());
+            // printf("cpu temporal optical flow costs: %fms\n", t_o.toc());
         }
         else
         {
@@ -288,6 +288,8 @@ map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> FeatureTracker::trackIm
                 cv::goodFeaturesToTrack(cur_img, n_pts, MAX_CNT - cur_pts.size(), 0.01, MIN_DIST, mask);
                 // printf("good feature to track costs: %fms\n", t_t.toc());
                 std::cout << "n_pts size: "<< n_pts.size()<<std::endl;
+                // printf("cpu good feature to track costs: %fms\n", t_t.toc());
+
             }
             else
                 n_pts.clear();
@@ -296,7 +298,6 @@ map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> FeatureTracker::trackIm
         }
         
         // ROS_DEBUG("detect feature costs: %fms", t_t.toc());
-        // printf("good feature to track costs: %fms\n", t_t.toc());
         else
         {
             if (n_max_cnt > 0)

@@ -27,6 +27,14 @@ Estimator::Estimator(): f_manager{Rs}
     std::ofstream outFile("output/input_data_rate.txt"); // Correct way to open a file in append mode
     outFile.close(); // Close the file stream
 
+    std::ofstream outFile1("output/feature_tracker_rate.txt"); // Correct way to open a file in append mode
+    outFile1.close(); // Close the file stream
+
+    std::ofstream outFile2("output/process_measurement_rate.txt"); // Correct way to open a file in append mode
+    outFile2.close(); // Close the file stream
+
+    std::ofstream outFile3("output/output_od_rate.txt"); // Correct way to open a file in append mode
+    outFile3.close(); // Close the file stream
 
 }
 
@@ -57,11 +65,24 @@ void Estimator::setParameter()
 void Estimator::inputImage(double t, const cv::Mat &_img, const cv::Mat &_img1)
 {
 
+    // bool each_second = EachSecond();
+    // if(each_second)
+    // {
+    //     count_sec += 1;
+    //     cout <<"count_sec: " << count_sec << endl;
+
+    //     if (count_sec > 60)
+    //     {
+    //         cout << "stop experiment" << endl;
+    //         exit(-1);
+    //     }
+    // }
+
     static ros::Time last_time = ros::Time::now();
     ros::Time current_time = ros::Time::now();
     double dt = (current_time - last_time).toSec();
     last_time = current_time;
-    ROS_INFO("***Input:  Image input rate: %f Hz", 1.0/dt);
+    // ROS_INFO("***Input:  Image input rate: %f Hz", 1.0/dt);
     std::ofstream outFile("output/input_data_rate.txt", std::ios::app); // Correct way to open a file in append mode
     outFile <<1.0/dt <<std::endl;
     outFile.close(); // Close the file stream            
@@ -69,7 +90,7 @@ void Estimator::inputImage(double t, const cv::Mat &_img, const cv::Mat &_img1)
 //     if(begin_time_count<=0)
     inputImageCnt++;
     map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> featureFrame;
-    // TicToc featureTrackerTime;
+    TicToc featureTrackerTime;
     if(_img1.empty())
         featureFrame = featureTracker.trackImage(t, _img);
     else
@@ -79,7 +100,14 @@ void Estimator::inputImage(double t, const cv::Mat &_img, const cv::Mat &_img1)
     //     sum_t_feature += featureTrackerTime.toc();
     //     printf("featureTracker time: %f\n", sum_t_feature/(float)inputImageCnt);
     // }
-    
+
+    float feature_tracker_time = featureTrackerTime.toc();
+    // printf("featureTracker time: %f ms\n", feature_tracker_time);
+
+    std::ofstream outFile2("output/feature_tracker_rate.txt", std::ios::app); // Correct way to open a file in append mode
+    outFile2 << feature_tracker_time <<std::endl;
+    outFile2.close(); // Close the file stream     
+
     if(MULTIPLE_THREAD)  
     {     
         if(inputImageCnt % 2 == 0)
@@ -96,7 +124,12 @@ void Estimator::inputImage(double t, const cv::Mat &_img, const cv::Mat &_img1)
         mBuf.unlock();
         TicToc processTime;
         processMeasurements();
-        printf("process time: %f\n", processTime.toc());
+        
+        float process_measurement_time = processTime.toc();
+
+        // printf("process time: %f\n", process_measurement_time);
+        // printf("Total estimation time: %f Hz\n", 1/(feature_tracker_time + process_measurement_time)*1000);
+
     }
     
 }
@@ -170,17 +203,18 @@ bool Estimator::IMUAvailable(double t)
 
 void Estimator::processMeasurements()
 {
-    std::ofstream outFile("output/output_od_rate.txt"); // Correct way to open a file in append mode
-    outFile.close(); // Close the file stream
+    static ros::Time last_print_time = ros::Time::now();
 
     while (1)
     {
+        // cout <<"processMeasurements: sleep_time_ms: " << sleep_time_ms << endl;
         //printf("process measurments\n");
-        TicToc t_process;
         pair<double, map<int, vector<pair<int, Eigen::Matrix<double, 7, 1> > > > > feature;
         vector<pair<double, Eigen::Vector3d>> accVector, gyrVector;
         if(!featureBuf.empty())
         {
+            TicToc t_process;
+
             feature = featureBuf.front();
             curTime = feature.first + td;
             while(1)
@@ -233,11 +267,16 @@ void Estimator::processMeasurements()
             ros::Time current_time = ros::Time::now();
             double dt = (current_time - last_time).toSec();
             last_time = current_time;
-            ROS_INFO("***Output:  Odometry publish rate: %f Hz", 1.0/dt);
-            
-            std::ofstream outFile("output/output_od_rate.txt", std::ios::app); // Correct way to open a file in append mode
-            outFile <<1.0/dt <<std::endl;
-            outFile.close(); // Close the file stream
+
+            // Check if 10 seconds have passed since the last print
+            if ((current_time - last_print_time).toSec() >= 5.0)
+            {
+                ROS_INFO("***Output: Odometry publish rate: %f Hz", 1.0 / dt);
+                last_print_time = current_time;
+            }            
+            std::ofstream outFile3("output/output_od_rate.txt", std::ios::app); // Correct way to open a file in append mode
+            outFile3 <<1.0/dt <<std::endl;
+            outFile3.close(); // Close the file stream
 
             pubOdometry(*this, header);
             pubKeyPoses(*this, header);
@@ -245,8 +284,16 @@ void Estimator::processMeasurements()
             pubPointCloud(*this, header);
             pubKeyframe(*this);
             pubTF(*this, header);
-            printf("process measurement time: %f\n", t_process.toc());
+            // printf("process measurement time: %f ms\n", t_process.toc());
+
+            std::ofstream outFile4("output/process_measurement_rate.txt", std::ios::app); // Correct way to open a file in append mode
+            outFile4 <<t_process.toc()<<std::endl;
+            outFile4.close(); // Close the file stream
+
         }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(sleep_time_ms)));
+
 
         if (! MULTIPLE_THREAD)
             break;
@@ -1565,4 +1612,20 @@ void Estimator::updateLatestStates()
         tmp_gyrBuf.pop();
     }
     mBuf.unlock();
+}
+
+bool Estimator::EachSecond()
+{
+	time_t theTime = time(NULL);
+	struct tm *aTime = localtime(&theTime);
+	current_sec = aTime->tm_sec;
+	if (current_sec != previous_sec)
+	{
+		previous_sec = current_sec;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }

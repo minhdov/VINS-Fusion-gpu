@@ -29,6 +29,50 @@ queue<sensor_msgs::ImageConstPtr> img0_buf;
 queue<sensor_msgs::ImageConstPtr> img1_buf;
 std::mutex m_buf;
 
+// Minh added
+
+// Global variables to store the drone's speed and acceleration
+double current_speed = 0.0;
+double angular_speed = 0.0;
+double threshold_speed = 0.0;
+
+double current_acceleration = 0.0;
+double control_factor_k = 15.0; // Control factor to adjust sleep time
+double max_sleep_ms = 50; //100.0; // Control factor to adjust sleep time
+
+std::mutex data_mutex;  // Mutex to protect access to the above variables
+
+// Callback function to update the current_speed
+void velocityCallback(const nav_msgs::Odometry::ConstPtr& msg)
+{
+    std::lock_guard<std::mutex> lock(data_mutex);  // Lock the mutex while updating the variable
+    current_speed = std::sqrt(std::pow(msg->twist.twist.linear.x, 2) +
+                              std::pow(msg->twist.twist.linear.y, 2) +
+                              std::pow(msg->twist.twist.linear.z, 2));
+
+    // Calculate angular speed
+    angular_speed = std::sqrt(std::pow(msg->twist.twist.angular.x, 2) +
+                              std::pow(msg->twist.twist.angular.y, 2) +
+                              std::pow(msg->twist.twist.angular.z, 2));
+
+    threshold_speed = std::max(current_speed, angular_speed);
+
+    // std::cout << "current_speed: " << current_speed << std::endl;
+}
+
+// Callback function to update the current_acceleration
+void accelerationCallback(const sensor_msgs::Imu::ConstPtr& msg)
+{
+    std::lock_guard<std::mutex> lock(data_mutex);  // Lock the mutex while updating the variable
+    current_acceleration = std::sqrt(std::pow(msg->linear_acceleration.x, 2) +
+                                     std::pow(msg->linear_acceleration.y, 2) +
+                                     std::pow(msg->linear_acceleration.z, 2));
+
+
+}
+
+
+///////////////////////////////
 
 void img0_callback(const sensor_msgs::ImageConstPtr &img_msg)
 {
@@ -76,6 +120,8 @@ void sync_process()
     }
     outFile.close(); // Close the file stream
 
+    static ros::Time last_print_time = ros::Time::now();
+
 
     while(1)
     {
@@ -102,7 +148,7 @@ void sync_process()
                 else
                 {
 
-                    
+
                     time = img0_buf.front()->header.stamp.toSec();
                     header = img0_buf.front()->header;
                     image0 = getImageFromMsg(img0_buf.front());
@@ -115,6 +161,7 @@ void sync_process()
             m_buf.unlock();
             if(!image0.empty())
             {
+
                 TicToc estimator_t;
 
                 estimator.inputImage(time, image0, image1);
@@ -123,6 +170,28 @@ void sync_process()
                 std::ofstream outFile("output/estimator_time.txt", std::ios::app); // Correct way to open a file in append mode
                 outFile <<1.0/estimator_time*1000 <<std::endl;
                 outFile.close(); // Close the file stream
+
+                // Adaptively control the sleep duration based on current_speed
+                double sleep_time_ms = std::max(1.0, max_sleep_ms/ (1 + control_factor_k*threshold_speed)); // Minimum sleep time of 100 ms
+                estimator.sleep_time_ms = sleep_time_ms;
+                std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(sleep_time_ms)));
+                
+
+                static ros::Time last_time = ros::Time::now();
+                ros::Time current_time = ros::Time::now();
+                double dt = (current_time - last_time).toSec();
+                last_time = current_time;
+
+                // Check if 10 seconds have passed since the last print
+                if ((current_time - last_print_time).toSec() >= 1.0)
+                {
+                ROS_INFO("***Input: Image input rate 0: %f Hz", 1.0/dt);
+                    last_print_time = current_time;
+
+                cout <<"threshold_speed, sleep_time_ms: " << threshold_speed <<" ; " <<sleep_time_ms << endl;
+
+                }   
+
             }
         }
         else
@@ -246,6 +315,11 @@ int main(int argc, char **argv)
     ros::Subscriber sub_feature = n.subscribe("/feature_tracker/feature", 2000, feature_callback);
     ros::Subscriber sub_img0 = n.subscribe(IMAGE0_TOPIC, 100, img0_callback);
     ros::Subscriber sub_img1 = n.subscribe(IMAGE1_TOPIC, 100, img1_callback);
+
+        // Subscribe to the necessary topics
+    ros::Subscriber velocity_sub = n.subscribe("/iris_0/mavros/local_position/odom", 10, velocityCallback);
+    // ros::Subscriber acceleration_sub = n.subscribe("/iris_0/mavros/imu/data", 10, accelerationCallback);
+
 
     std::thread sync_thread{sync_process};
     ros::spin();
